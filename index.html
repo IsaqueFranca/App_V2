@@ -4,16 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinancIA - Dark Dashboard</title>
+    <title>FinancIA - Smart Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="./icon.svg">
     <meta name="theme-color" content="#09090b">
     <link rel="manifest" href="./manifest.json">
     <style>
       body { background-color: #09090b; }
-      ::-webkit-scrollbar { width: 4px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
-      ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
     </style>
     <script src="https://cdn.tailwindcss.com"></script>
 <script type="importmap">
@@ -41,7 +41,7 @@
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-zinc-950">
+<body class="bg-zinc-950 overflow-hidden">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
 <script type="module" src="/index.tsx"></script>
