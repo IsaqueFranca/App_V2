@@ -1,50 +1,25 @@
 
-export type TransactionType = 'income' | 'expense';
-
-export interface User {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-}
-
 export interface Category {
   id: string;
   name: string;
   icon: string;
+  budgetedAmount: number;
   color: string;
 }
 
-export interface Account {
-  id: string;
-  name: string;
-  balance: number;
-  type: 'checking' | 'savings' | 'investment' | 'cash';
-}
+// Added HealthDegree type for study planner customization
+export type HealthDegree = 
+  | 'Medicine' 
+  | 'Pharmacy' 
+  | 'Nursing' 
+  | 'Dentistry' 
+  | 'Physiotherapy' 
+  | 'Biomedicine' 
+  | 'Nutrition' 
+  | 'Clinical Analysis' 
+  | 'Radiology';
 
-export interface Transaction {
-  id: string;
-  description: string;
-  amount: number;
-  type: TransactionType;
-  categoryId: string;
-  accountId: string;
-  date: string; // ISO YYYY-MM-DD
-  notes?: string;
-}
-
-export interface FinanceSettings {
-  userName: string;
-  monthlyIncomeGoal: number;
-  monthlyExpenseLimit: number;
-  currency: string;
-}
-
-// Aliasing for compatibility with useStudyStore
-export type FinancialSettings = FinanceSettings;
-
-export type HealthDegree = 'Medicine' | 'Pharmacy' | 'Nursing' | 'Dentistry' | 'Physiotherapy' | 'Biomedicine' | 'Nutrition' | 'Clinical Analysis' | 'Radiology';
-
+// Comprehensive Settings interface including study planner specific goals
 export interface Settings {
   userName: string;
   healthDegree: HealthDegree;
@@ -54,12 +29,37 @@ export interface Settings {
   shortBreakDuration: number;
   currency: string;
   monthlySavingsGoal: number;
+  monthlyIncomeGoal: number;
+  monthlyExpenseLimit: number;
 }
 
-export interface Month {
+export interface FinanceSettings {
+  salary: number;
+  emergencyFundMonths: number;
+  currency: string;
+}
+
+export interface User {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+}
+
+export interface Transaction {
+  id: string;
+  description: string;
+  amount: number;
+  type: 'income' | 'expense';
+  date: string;
+  categoryId?: string;
+}
+
+export interface Account {
   id: string;
   name: string;
-  year: number;
+  type: string;
+  balance: number;
 }
 
 export interface Subtopic {
@@ -79,9 +79,15 @@ export interface Subject {
   id: string;
   title: string;
   monthId: string;
+  tag?: string;
   subtopics: Subtopic[];
   schedules: Record<string, SubjectSchedule>;
-  tag?: string;
+}
+
+export interface Month {
+  id: string;
+  name: string;
+  year: number;
 }
 
 export interface Session {
@@ -91,4 +97,9 @@ export interface Session {
   duration: number;
   date: string;
   status: 'completed' | 'incomplete';
+}
+
+export interface FinanceState {
+  categories: Category[];
+  settings: FinanceSettings;
 }

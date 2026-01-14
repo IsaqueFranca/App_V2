@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Category, Transaction, Account, FinancialSettings, User, Month, Subject, Session, Settings } from '../types';
+import { Category, Transaction, Account, FinanceSettings, User, Month, Subject, Session, Settings } from '../types';
 import { generateId, formatDate } from '../lib/utils';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -12,7 +12,7 @@ interface FinanceState {
   accounts: Account[];
   categories: Category[];
   transactions: Transaction[];
-  settings: FinancialSettings & Settings; // Merged for compatibility
+  settings: FinanceSettings & Settings; // Merged for compatibility
   
   // Study Planner State
   months: Month[];
@@ -60,7 +60,7 @@ interface FinanceState {
   updateSubjectSchedule: (subjectId: string, monthId: string, updates: any) => void;
   toggleSubjectPlannedDay: (subjectId: string, monthId: string, date: string) => void;
   
-  updateSettings: (s: Partial<FinancialSettings & Settings>) => void;
+  updateSettings: (s: Partial<FinanceSettings & Settings>) => void;
   
   // Selectors
   getBalance: () => number;
@@ -108,6 +108,8 @@ export const useStudyStore = create<FinanceState>()(
       activeScheduleMonths: [],
 
       settings: {
+        salary: 0,
+        emergencyFundMonths: 6,
         currency: 'BRL',
         monthlySavingsGoal: 500,
         monthlyIncomeGoal: 0,

@@ -1,6 +1,5 @@
-
 {
   "name": "FinancIA",
-  "description": "Gestão financeira pessoal inteligente com consultoria de IA baseada em Gemini.",
+  "description": "Planejador financeiro pessoal minimalista com foco em reserva de emergência e categorias de gastos.",
   "requestFramePermissions": []
 }
