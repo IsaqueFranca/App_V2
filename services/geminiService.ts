@@ -1,41 +1,35 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const getAiClient = () => {
-  const apiKey = process.env.API_KEY;
-  return apiKey ? new GoogleGenAI({ apiKey }) : null;
-};
-
-export const analyzeFinances = async (transactions: any[], goals: string): Promise<string> => {
-  const ai = getAiClient();
-  if (!ai) return "IA indisponível no momento.";
+export const analyzeFinances = async (transactions: any[], settings: any): Promise<string> => {
+  // Always use direct initialization with apiKey from process.env.API_KEY
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
-    const summary = transactions.slice(0, 30).map(t => `${t.date}: ${t.description} - R$${t.amount} (${t.type})`);
+    const summary = transactions.slice(-20).map(t => `${t.date}: ${t.description} - R$${t.amount} (${t.type})`);
     
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Atue como um consultor financeiro pessoal. Analise estes gastos recentes e dê 3 dicas práticas para economizar e atingir a meta: "${goals}".
+      contents: `Atue como um consultor financeiro pessoal. Analise estes gastos recentes e dê dicas práticas para economizar.
+      Contexto: O usuário deseja manter um limite de gastos de R$${settings.monthlyExpenseLimit}.
       Transações: ${JSON.stringify(summary)}
-      Responda em Português do Brasil de forma concisa e amigável.`,
+      Responda de forma concisa em Português do Brasil.`,
     });
 
     return response.text || "Continue registrando para obter análise.";
   } catch (error) {
-    return "Erro ao analisar dados.";
+    return "Erro ao analisar dados financeiros.";
   }
 };
 
 export const extractTransactionFromText = async (text: string): Promise<any> => {
-  const ai = getAiClient();
-  if (!ai) return null;
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Extraia os dados financeiros do seguinte texto: "${text}".
-      Retorne JSON com: description, amount (number), type (income/expense), date (YYYY-MM-DD).
-      Se não houver data, use a de hoje: ${new Date().toISOString().split('T')[0]}`,
+      contents: `Extraia dados financeiros deste texto: "${text}". 
+      Retorne JSON com: description, amount (number), type (income/expense), date (YYYY-MM-DD).`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -45,26 +39,29 @@ export const extractTransactionFromText = async (text: string): Promise<any> => 
             amount: { type: Type.NUMBER },
             type: { type: Type.STRING },
             date: { type: Type.STRING }
-          }
+          },
+          required: ["description", "amount", "type", "date"]
         }
       }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || "null");
   } catch (e) {
     return null;
   }
 };
 
-// Added for study planner: organize subjects from text input
+/**
+ * Organizes a list of subjects from a messy string of text using Gemini.
+ */
 export const organizeSubjectsFromText = async (text: string): Promise<string[]> => {
-  const ai = getAiClient();
-  if (!ai) return [];
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Analise o seguinte texto de um edital ou lista de estudos e extraia APENAS os nomes das matérias ou assuntos principais: "${text}".
-      Retorne o resultado estritamente como um array JSON de strings.`,
+      contents: `Analise o seguinte texto e extraia uma lista de tópicos ou matérias de estudo.
+      Retorne APENAS um array JSON de strings com os nomes dos tópicos.
+      Texto: "${text}"`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -75,21 +72,22 @@ export const organizeSubjectsFromText = async (text: string): Promise<string[]> 
     });
     return JSON.parse(response.text || "[]");
   } catch (e) {
-    console.error("Erro no organizeSubjectsFromText:", e);
+    console.error(e);
     return [];
   }
 };
 
-// Added for study planner: generate subtopics for a given subject
+/**
+ * Generates subtopics for a specific subject based on the student's degree.
+ */
 export const generateSubtopicsForSubject = async (subject: string, degree: string): Promise<string[]> => {
-  const ai = getAiClient();
-  if (!ai) return [];
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Como um tutor especializado na área de ${degree}, liste os 5 subtópicos mais importantes e frequentes em provas para o assunto: "${subject}".
-      Retorne o resultado estritamente como um array JSON de strings.`,
+      contents: `Gere uma lista de subtópicos essenciais para estudar a matéria "${subject}" no contexto de um curso de "${degree}".
+      Retorne APENAS um array JSON de strings com os nomes dos subtópicos (máximo 10).`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -100,55 +98,55 @@ export const generateSubtopicsForSubject = async (subject: string, degree: strin
     });
     return JSON.parse(response.text || "[]");
   } catch (e) {
-    console.error("Erro no generateSubtopicsForSubject:", e);
+    console.error(e);
     return [];
   }
 };
 
-// Added for study planner: chat with AI tutor during study session
+/**
+ * Provides an AI tutor response for a study chat session.
+ */
 export const getStudyChatResponse = async (subject: string, degree: string, message: string, history: any[]): Promise<string> => {
-  const ai = getAiClient();
-  if (!ai) return "Sistema de IA temporariamente indisponível.";
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
-    const formattedHistory = history.map(h => ({
-      role: h.role === 'user' ? 'user' : 'model',
-      parts: [{ text: h.parts[0].text }]
-    }));
-
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: [
-        { role: 'user', parts: [{ text: `Você é o QIsaque, um tutor inteligente para estudantes da área de ${degree}. Ajude o aluno a entender o assunto: ${subject}. Seja didático e incentive o estudo.` }] },
-        ...formattedHistory,
-        { role: 'user', parts: [{ text: message }] }
-      ]
+      contents: `Você é um tutor especializado em ${degree}. Ajude o aluno a estudar ${subject}. 
+      Responda de forma didática e encorajadora em Português do Brasil.
+      Histórico anterior: ${JSON.stringify(history)}
+      Dúvida atual: ${message}`,
     });
-
-    return response.text || "Desculpe, não consegui processar sua dúvida agora.";
+    
+    return response.text || "Não consegui processar sua dúvida no momento.";
   } catch (e) {
-    console.error("Erro no getStudyChatResponse:", e);
-    return "Ocorreu um erro ao consultar o tutor.";
+    console.error(e);
+    return "Erro ao processar conversa com a IA.";
   }
 };
 
-// Added for study planner: behavioral insights for statistics
-export const generateBehavioralInsights = async (streakStats: any, sessions: any[], degree: string): Promise<string> => {
-  const ai = getAiClient();
-  if (!ai || sessions.length === 0) return "";
+/**
+ * Generates behavioral insights based on study streak and history.
+ */
+export const generateBehavioralInsights = async (stats: any, sessions: any[], degree: string): Promise<string> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
+    const summary = {
+      streak: stats.currentStreak,
+      totalActiveDays: stats.totalActiveDays,
+      recentSessions: sessions.slice(-10).map(s => ({ date: s.date, duration: s.duration, status: s.status }))
+    };
+
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Analise o desempenho deste estudante de ${degree}:
-      Dias ativos: ${streakStats.totalActiveDays}.
-      Sequência atual: ${streakStats.currentStreak} dias.
-      Total de sessões: ${sessions.length}.
-      Dê 2 dicas comportamentais curtas e motivadoras baseadas no ritmo. Responda em Português (Brasil).`,
+      contents: `Analise o comportamento de estudo deste aluno de ${degree} com base nos dados abaixo e forneça 2 ou 3 insights comportamentais ou dicas de produtividade em Português do Brasil. Seja breve e encorajador.
+      Dados: ${JSON.stringify(summary)}`,
     });
 
     return response.text || "";
   } catch (e) {
+    console.error(e);
     return "";
   }
 };

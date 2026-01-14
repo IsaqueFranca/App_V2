@@ -1,9 +1,6 @@
 
 export type TransactionType = 'income' | 'expense';
 
-// HealthDegree used for AI personalization in the study planner
-export type HealthDegree = 'Medicine' | 'Pharmacy' | 'Nursing' | 'Dentistry' | 'Physiotherapy' | 'Biomedicine' | 'Nutrition' | 'Clinical Analysis' | 'Radiology';
-
 export interface User {
   uid: string;
   email: string | null;
@@ -13,17 +10,16 @@ export interface User {
 
 export interface Category {
   id: string;
-  title: string;
+  name: string;
   icon: string;
   color: string;
-  budgetLimit?: number;
 }
 
 export interface Account {
   id: string;
   name: string;
-  type: 'checking' | 'savings' | 'investment' | 'cash';
   balance: number;
+  type: 'checking' | 'savings' | 'investment' | 'cash';
 }
 
 export interface Transaction {
@@ -34,55 +30,20 @@ export interface Transaction {
   categoryId: string;
   accountId: string;
   date: string; // ISO YYYY-MM-DD
-  isRecurring: boolean;
   notes?: string;
 }
 
-export interface FinancialSettings {
-  currency: string;
-  monthlySavingsGoal: number;
+export interface FinanceSettings {
   userName: string;
-  primaryAccount?: string;
+  monthlyIncomeGoal: number;
+  monthlyExpenseLimit: number;
+  currency: string;
 }
 
-// --- Study Planner Types ---
+// Aliasing for compatibility with useStudyStore
+export type FinancialSettings = FinanceSettings;
 
-export interface Subtopic {
-  id: string;
-  title: string;
-  isCompleted: boolean;
-}
-
-export interface SubjectSchedule {
-  monthlyGoal: number; // in hours
-  plannedDays: string[]; // YYYY-MM-DD
-  isCompleted: boolean;
-  notes?: string;
-}
-
-export interface Subject {
-  id: string;
-  title: string;
-  monthId: string; // The parent Month ID
-  tag?: string;
-  subtopics: Subtopic[];
-  schedules: Record<string, SubjectSchedule>; // Key is monthId (YYYY-MM)
-}
-
-export interface Month {
-  id: string; // YYYY-MM
-  name: string;
-  year: number;
-}
-
-export interface Session {
-  id: string;
-  subjectId: string;
-  startTime: number; // timestamp
-  duration: number; // seconds
-  date: string; // YYYY-MM-DD
-  status: 'completed' | 'incomplete';
-}
+export type HealthDegree = 'Medicine' | 'Pharmacy' | 'Nursing' | 'Dentistry' | 'Physiotherapy' | 'Biomedicine' | 'Nutrition' | 'Clinical Analysis' | 'Radiology';
 
 export interface Settings {
   userName: string;
@@ -91,4 +52,43 @@ export interface Settings {
   monthlyGoalHours: number;
   pomodoroDuration: number;
   shortBreakDuration: number;
+  currency: string;
+  monthlySavingsGoal: number;
+}
+
+export interface Month {
+  id: string;
+  name: string;
+  year: number;
+}
+
+export interface Subtopic {
+  id: string;
+  title: string;
+  isCompleted: boolean;
+}
+
+export interface SubjectSchedule {
+  monthlyGoal: number;
+  plannedDays: string[];
+  isCompleted: boolean;
+  notes?: string;
+}
+
+export interface Subject {
+  id: string;
+  title: string;
+  monthId: string;
+  subtopics: Subtopic[];
+  schedules: Record<string, SubjectSchedule>;
+  tag?: string;
+}
+
+export interface Session {
+  id: string;
+  subjectId: string;
+  startTime: number;
+  duration: number;
+  date: string;
+  status: 'completed' | 'incomplete';
 }
