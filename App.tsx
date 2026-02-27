@@ -4,67 +4,71 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Plus, Trash2, Shield, Wallet, PieChart, 
   Info, TrendingUp, AlertCircle, 
-  ChevronRight, Calculator, X, History, ArrowUpRight
+  ChevronRight, Calculator, X, History, ArrowUpRight,
+  ShoppingBag, ReceiptText
 } from "lucide-react";
 import { useFinanceStore } from "./hooks/useFinanceStore";
 import { cn, formatCurrency } from "./lib/utils";
 
-// Fixed: Added React.FC type to handle reserved props like 'key' correctly in JSX
-const CompactCategory: React.FC<{ category: any; onOpenDetails: () => void }> = ({ category, onOpenDetails }) => {
-  const { updateCategoryBudget, removeCategory } = useFinanceStore();
-  const isCaixinha = category.name.toLowerCase().includes('caixinha');
-  
-  return (
-    <motion.div 
-      layout
-      className={cn(
-        "bg-zinc-900/50 border p-3 rounded-xl flex flex-col gap-2 group relative transition-all",
-        isCaixinha ? "border-cyan-500/40 cursor-pointer hover:bg-cyan-500/5 shadow-lg shadow-cyan-500/5" : "border-zinc-800 hover:border-zinc-700"
-      )}
-      onClick={() => isCaixinha && onOpenDetails()}
-    >
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <span className="text-sm shrink-0">{category.icon}</span>
-          <span className={cn(
-            "text-[10px] font-bold uppercase tracking-tighter truncate leading-none",
-            isCaixinha ? "text-cyan-400" : "text-zinc-400"
-          )}>
-            {category.name}
-          </span>
-        </div>
-        {!isCaixinha && (
-          <button 
-            onClick={(e) => { e.stopPropagation(); removeCategory(category.id); }}
-            className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Trash2 size={12} />
-          </button>
+// Fixed: Wrapped with React.forwardRef to handle refs from Framer Motion's AnimatePresence (popLayout mode)
+const CompactCategory = React.forwardRef<HTMLDivElement, { category: any; onOpenDetails: () => void }>(
+  ({ category, onOpenDetails }, ref) => {
+    const { updateCategoryBudget, removeCategory } = useFinanceStore();
+    const isCaixinha = category.name.toLowerCase().includes('caixinha');
+    
+    return (
+      <motion.div 
+        ref={ref}
+        layout
+        className={cn(
+          "bg-zinc-900/50 border p-3 rounded-xl flex flex-col gap-2 group relative transition-all",
+          isCaixinha ? "border-cyan-500/40 cursor-pointer hover:bg-cyan-500/5 shadow-lg shadow-cyan-500/5" : "border-zinc-800 hover:border-zinc-700"
         )}
-        {isCaixinha && <ArrowUpRight size={10} className="text-cyan-500" />}
-      </div>
-      
-      <div className="relative" onClick={(e) => isCaixinha && e.stopPropagation()}>
-        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-zinc-500 font-bold">R$</span>
-        <input 
-          type="number"
-          value={category.budgetedAmount || ""}
-          onChange={(e) => updateCategoryBudget(category.id, parseFloat(e.target.value) || 0)}
-          className={cn(
-            "w-full bg-zinc-950 border rounded-lg pl-6 pr-2 py-1.5 text-xs font-bold transition-all outline-none",
-            isCaixinha ? "border-cyan-500/40 text-cyan-50" : "border-zinc-800 text-zinc-100 focus:ring-1 ring-emerald-500/50"
+        onClick={() => isCaixinha && onOpenDetails()}
+      >
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <span className="text-sm shrink-0">{category.icon}</span>
+            <span className={cn(
+              "text-[10px] font-bold uppercase tracking-tighter truncate leading-none",
+              isCaixinha ? "text-cyan-400" : "text-zinc-400"
+            )}>
+              {category.name}
+            </span>
+          </div>
+          {!isCaixinha && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); removeCategory(category.id); }}
+              className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Trash2 size={12} />
+            </button>
           )}
-          placeholder="0,00"
-        />
-      </div>
-      {isCaixinha && (
-        <div className="text-[8px] font-black text-cyan-500 uppercase tracking-widest text-center animate-pulse">
-          Toque para Projetar Rendimento
+          {isCaixinha && <ArrowUpRight size={10} className="text-cyan-500" />}
         </div>
-      )}
-    </motion.div>
-  );
-};
+        
+        <div className="relative" onClick={(e) => isCaixinha && e.stopPropagation()}>
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-zinc-500 font-bold">R$</span>
+          <input 
+            type="number"
+            value={category.budgetedAmount || ""}
+            onChange={(e) => updateCategoryBudget(category.id, parseFloat(e.target.value) || 0)}
+            className={cn(
+              "w-full bg-zinc-950 border rounded-lg pl-6 pr-2 py-1.5 text-xs font-bold transition-all outline-none",
+              isCaixinha ? "border-cyan-500/40 text-cyan-50" : "border-zinc-800 text-zinc-100 focus:ring-1 ring-emerald-500/50"
+            )}
+            placeholder="0,00"
+          />
+        </div>
+        {isCaixinha && (
+          <div className="text-[8px] font-black text-cyan-500 uppercase tracking-widest text-center animate-pulse">
+            Toque para Projetar Rendimento
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+);
 
 // Fixed: Added React.FC type for consistency and to avoid potential prop validation issues
 const CaixinhaModal: React.FC<{ isOpen: boolean, onClose: () => void }> = ({ isOpen, onClose }) => {
@@ -218,23 +222,39 @@ const App = () => {
   const { 
     salary, setSalary, 
     categories, addCategory,
+    expenses, addExpense, removeExpense,
     emergencyFundMonths, setEmergencyFundMonths,
-    getTotalBudgeted, getRemainingBalance, getEmergencyFundGoal, getMonthlyInvestment 
+    getTotalBudgeted, getRemainingBalance, getFreeBalance, getEmergencyFundGoal, getMonthlyInvestment 
   } = useFinanceStore();
 
   const [newCatName, setNewCatName] = useState("");
   const [isCaixinhaOpen, setIsCaixinhaOpen] = useState(false);
   
+  // Expense form state
+  const [expenseDesc, setExpenseDesc] = useState("");
+  const [expenseAmount, setExpenseAmount] = useState<string>("");
+
   const totalBudgeted = getTotalBudgeted();
   const monthlyAporte = getMonthlyInvestment();
-  const remaining = getRemainingBalance();
+  const remainingBudget = getRemainingBalance();
+  const freeBalance = getFreeBalance();
   const emergencyGoal = getEmergencyFundGoal();
-  const isOverBudget = remaining < 0;
+  const isOverBudget = freeBalance < 0;
 
   const handleAddCategory = () => {
     if (newCatName.trim()) {
       addCategory(newCatName, "•", 0);
       setNewCatName("");
+    }
+  };
+
+  const handleAddExpense = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseFloat(expenseAmount);
+    if (expenseDesc.trim() && !isNaN(amount)) {
+      addExpense(expenseDesc, amount);
+      setExpenseDesc("");
+      setExpenseAmount("");
     }
   };
 
@@ -263,10 +283,13 @@ const App = () => {
           )}>
             <div className="flex items-center gap-2 mb-2">
               <PieChart size={12} className={isOverBudget ? "text-red-400" : "text-zinc-500"} />
-              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Saldo Livre</span>
+              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Saldo Livre Real</span>
             </div>
             <p className={cn("text-2xl font-black tracking-tighter", isOverBudget ? "text-red-500" : "text-emerald-500")}>
-              {formatCurrency(remaining)}
+              {formatCurrency(freeBalance)}
+            </p>
+            <p className="text-[8px] font-bold text-zinc-500 uppercase mt-1">
+              Pós Orçamento: {formatCurrency(remainingBudget)}
             </p>
           </div>
 
@@ -288,49 +311,140 @@ const App = () => {
         </header>
 
         {/* MAIN DASHBOARD */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-6 md:p-8 min-h-[500px] flex flex-col">
-          <div className="flex items-center justify-between mb-8 shrink-0">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500">Distribuição do Orçamento</h2>
-            <div className="flex gap-2">
-              <input 
-                value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
-                className="h-8 text-[10px] bg-zinc-950 border border-zinc-800 rounded-lg px-3 w-32 outline-none font-bold"
-                placeholder="NOVA CATEGORIA..."
-              />
-              <button onClick={handleAddCategory} className="h-8 w-8 bg-zinc-100 text-zinc-950 rounded-lg flex items-center justify-center hover:bg-white transition-colors">
-                <Plus size={14} />
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 content-start flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <AnimatePresence mode="popLayout">
-              {categories.map((cat) => (
-                <CompactCategory 
-                  key={cat.id} 
-                  category={cat} 
-                  onOpenDetails={() => setIsCaixinhaOpen(true)}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* BUDGET DISTRIBUTION */}
+          <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-6 md:p-8 min-h-[500px] flex flex-col">
+            <div className="flex items-center justify-between mb-8 shrink-0">
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500">Distribuição do Orçamento</h2>
+              <div className="flex gap-2">
+                <input 
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                  className="h-8 text-[10px] bg-zinc-950 border border-zinc-800 rounded-lg px-3 w-32 outline-none font-bold"
+                  placeholder="NOVA CATEGORIA..."
                 />
-              ))}
-            </AnimatePresence>
+                <button onClick={handleAddCategory} className="h-8 w-8 bg-zinc-100 text-zinc-950 rounded-lg flex items-center justify-center hover:bg-white transition-colors">
+                  <Plus size={14} />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 content-start flex-1 overflow-y-auto pr-2 custom-scrollbar">
+              <AnimatePresence mode="popLayout">
+                {categories.map((cat) => (
+                  <CompactCategory 
+                    key={cat.id} 
+                    category={cat} 
+                    onOpenDetails={() => setIsCaixinhaOpen(true)}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {categories.length === 0 && (
+              <div className="flex-1 flex flex-col items-center justify-center opacity-20">
+                <Info size={40} className="mb-3" />
+                <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma categoria ativa</p>
+              </div>
+            )}
+
+            <footer className="mt-8 pt-6 border-t border-zinc-800 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-zinc-500">
+              <div className="flex gap-6">
+                <div>Total Orçado: <span className="text-white ml-1">{formatCurrency(totalBudgeted)}</span></div>
+                <div>Comprometimento: <span className="text-white ml-1">{salary > 0 ? ((totalBudgeted / salary) * 100).toFixed(1) : 0}%</span></div>
+              </div>
+            </footer>
           </div>
 
-          {categories.length === 0 && (
-            <div className="flex-1 flex flex-col items-center justify-center opacity-20">
-              <Info size={40} className="mb-3" />
-              <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma categoria ativa</p>
+          {/* EXPENSE CONTROL */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-6 flex flex-col gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <ShoppingBag size={16} className="text-emerald-500" />
+              </div>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500">Controle de Compras</h2>
             </div>
-          )}
 
-          <footer className="mt-8 pt-6 border-t border-zinc-800 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-zinc-500">
-            <div className="flex gap-6">
-              <div>Total Gastos: <span className="text-white ml-1">{formatCurrency(totalBudgeted)}</span></div>
-              <div>Comprometimento: <span className="text-white ml-1">{salary > 0 ? ((totalBudgeted / salary) * 100).toFixed(1) : 0}%</span></div>
+            <form onSubmit={handleAddExpense} className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-zinc-500 uppercase">Descrição</label>
+                <input 
+                  value={expenseDesc}
+                  onChange={(e) => setExpenseDesc(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-emerald-500 transition-all"
+                  placeholder="Ex: Mercado, iFood, Cinema..."
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-zinc-500 uppercase">Valor (R$)</label>
+                <input 
+                  type="number"
+                  step="0.01"
+                  value={expenseAmount}
+                  onChange={(e) => setExpenseAmount(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-emerald-500 transition-all"
+                  placeholder="0,00"
+                />
+              </div>
+              <button 
+                type="submit"
+                className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-[10px] uppercase tracking-widest py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
+              >
+                Adicionar Gasto
+              </button>
+            </form>
+
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="flex items-center gap-2 mb-3">
+                <ReceiptText size={12} className="text-zinc-500" />
+                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Últimas Compras</span>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                <AnimatePresence mode="popLayout">
+                  {expenses.map((exp) => (
+                    <motion.div 
+                      key={exp.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="bg-zinc-950/50 border border-zinc-800 p-3 rounded-xl flex justify-between items-center group hover:border-zinc-700 transition-all"
+                    >
+                      <div>
+                        <p className="text-[11px] font-bold text-white leading-tight">{exp.description}</p>
+                        <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">{exp.date}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-black text-zinc-200">{formatCurrency(exp.amount)}</span>
+                        <button 
+                          onClick={() => removeExpense(exp.id)}
+                          className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {expenses.length === 0 && (
+                  <div className="h-full flex flex-col items-center justify-center opacity-20 py-10">
+                    <History size={24} className="mb-2" />
+                    <p className="text-[8px] font-black uppercase tracking-widest">Sem gastos registrados</p>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="text-zinc-600">FinancIA Core v5.0</div>
-          </footer>
+            
+            <div className="pt-4 border-t border-zinc-800">
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                <span className="text-zinc-500">Total Variável:</span>
+                <span className="text-white">{formatCurrency(expenses.reduce((acc, e) => acc + e.amount, 0))}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
