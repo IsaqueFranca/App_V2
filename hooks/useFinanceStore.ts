@@ -114,6 +114,6 @@ export const useFinanceStore = create<FinanceStore>()(
         return monthlyEssentials * get().emergencyFundMonths;
       }
     }),
-    { name: 'financia-core-v6-storage' }
+    { name: 'financia-app-data-storage' }
   )
 );

@@ -5,8 +5,10 @@ import {
   Plus, Trash2, Shield, Wallet, PieChart, 
   Info, TrendingUp, AlertCircle, 
   ChevronRight, Calculator, X, History, ArrowUpRight,
-  ShoppingBag, ReceiptText
+  ShoppingBag, ReceiptText, Download
 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { useFinanceStore } from "./hooks/useFinanceStore";
 import { cn, formatCurrency } from "./lib/utils";
 
@@ -258,6 +260,64 @@ const App = () => {
     }
   };
 
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR');
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(40);
+    doc.text("Relatório Mensal - FinancIA", 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Gerado em: ${dateStr}`, 14, 30);
+    
+    // Summary Section
+    doc.setFontSize(14);
+    doc.setTextColor(40);
+    doc.text("Resumo Financeiro", 14, 45);
+    
+    autoTable(doc, {
+      startY: 50,
+      head: [['Item', 'Valor']],
+      body: [
+        ['Renda Mensal', formatCurrency(salary)],
+        ['Total Orçado (Fixo)', formatCurrency(totalBudgeted)],
+        ['Total Compras (Variável)', formatCurrency(expenses.reduce((acc, e) => acc + e.amount, 0))],
+        ['Saldo Livre Real', formatCurrency(freeBalance)],
+        ['Meta Reserva de Emergência', formatCurrency(emergencyGoal)],
+      ],
+      theme: 'striped',
+      headStyles: { fillColor: [16, 185, 129] } // Emerald-500
+    });
+    
+    // Categories Section
+    doc.text("Distribuição do Orçamento", 14, (doc as any).lastAutoTable.finalY + 15);
+    
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 20,
+      head: [['Categoria', 'Valor Orçado']],
+      body: categories.map(cat => [cat.name, formatCurrency(cat.budgetedAmount)]),
+      theme: 'grid'
+    });
+    
+    // Expenses Section
+    if (expenses.length > 0) {
+      doc.text("Histórico de Compras", 14, (doc as any).lastAutoTable.finalY + 15);
+      
+      autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 20,
+        head: [['Descrição', 'Data', 'Valor']],
+        body: expenses.map(exp => [exp.description, exp.date, formatCurrency(exp.amount)]),
+        theme: 'striped'
+      });
+    }
+    
+    doc.save(`FinancIA_Resumo_${now.getFullYear()}_${now.getMonth() + 1}.pdf`);
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300 font-sans p-4 md:p-6 selection:bg-cyan-500/30">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -316,7 +376,16 @@ const App = () => {
           {/* BUDGET DISTRIBUTION */}
           <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-6 md:p-8 min-h-[500px] flex flex-col">
             <div className="flex items-center justify-between mb-8 shrink-0">
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500">Distribuição do Orçamento</h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500">Distribuição do Orçamento</h2>
+                <button 
+                  onClick={handleDownloadPDF}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  <Download size={12} />
+                  PDF
+                </button>
+              </div>
               <div className="flex gap-2">
                 <input 
                   value={newCatName}
