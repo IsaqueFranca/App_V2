@@ -93,10 +93,10 @@ export const useStudyStore = create<FinanceState>()(
         { id: 'main', name: 'Conta Principal', type: 'checking', balance: 0 }
       ],
       categories: [
-        { id: 'cat-1', name: 'Alimentação', icon: '🍔', color: 'bg-orange-500' },
-        { id: 'cat-2', name: 'Moradia', icon: '🏠', color: 'bg-blue-500' },
-        { id: 'cat-3', name: 'Lazer', icon: '🎬', color: 'bg-purple-500' },
-        { id: 'cat-4', name: 'Salário', icon: '💰', color: 'bg-green-500' }
+        { id: 'cat-1', name: 'Alimentação', icon: '🍔', color: 'bg-orange-500', budgetedAmount: 0 },
+        { id: 'cat-2', name: 'Moradia', icon: '🏠', color: 'bg-blue-500', budgetedAmount: 0 },
+        { id: 'cat-3', name: 'Lazer', icon: '🎬', color: 'bg-purple-500', budgetedAmount: 0 },
+        { id: 'cat-4', name: 'Salário', icon: '💰', color: 'bg-green-500', budgetedAmount: 0 }
       ],
       transactions: [],
       

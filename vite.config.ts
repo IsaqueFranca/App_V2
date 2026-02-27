@@ -12,10 +12,23 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     base: './',
+    resolve: {
+      alias: {
+        // Force resolution to the ESM build of jspdf
+        'jspdf': 'jspdf/dist/jspdf.es.min.js',
+      }
+    },
+    optimizeDeps: {
+      include: ['jspdf', 'jspdf-autotable'],
+    },
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
       sourcemap: false,
+      rollupOptions: {
+        // Ensure jspdf is not treated as external
+        external: [],
+      }
     },
     define: {
       // Explicitly define environment variables to replace them with string values during build.
