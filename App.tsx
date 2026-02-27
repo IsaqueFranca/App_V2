@@ -335,11 +335,11 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans p-4 md:p-8 selection:bg-slate-100">
-      <div className="max-w-[1200px] mx-auto space-y-8">
+    <div className="min-h-screen bg-white text-slate-900 font-sans p-4 md:p-8 selection:bg-slate-100 pb-24 md:pb-8">
+      <div className="max-w-[1200px] mx-auto space-y-6 md:space-y-8">
         
-        {/* HEADER & TABS */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        {/* HEADER */}
+        <div className="flex justify-between items-center">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center shadow-sm">
               <PieChart size={14} className="text-white" />
@@ -350,7 +350,7 @@ const App = () => {
             </div>
           </div>
 
-          <div className="flex bg-slate-50 p-0.5 rounded-lg border border-slate-100">
+          <div className="hidden md:flex bg-slate-50 p-0.5 rounded-lg border border-slate-100">
             <button 
               onClick={() => setActiveTab('dashboard')}
               className={cn(
@@ -380,6 +380,42 @@ const App = () => {
             >
               <History size={10} />
               Histórico
+            </button>
+          </div>
+        </div>
+
+        {/* MOBILE NAVIGATION */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden w-[calc(100%-2rem)] max-w-sm">
+          <div className="bg-white/80 backdrop-blur-md border border-slate-200 p-1 rounded-2xl shadow-2xl flex justify-between items-center">
+            <button 
+              onClick={() => setActiveTab('dashboard')}
+              className={cn(
+                "flex-1 flex flex-col items-center gap-1 py-2 rounded-xl transition-all",
+                activeTab === 'dashboard' ? "bg-slate-900 text-white" : "text-slate-400"
+              )}
+            >
+              <LayoutDashboard size={14} />
+              <span className="text-[6px] font-bold uppercase tracking-widest">Painel</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab('simulation')}
+              className={cn(
+                "flex-1 flex flex-col items-center gap-1 py-2 rounded-xl transition-all",
+                activeTab === 'simulation' ? "bg-slate-900 text-white" : "text-slate-400"
+              )}
+            >
+              <Calculator size={14} />
+              <span className="text-[6px] font-bold uppercase tracking-widest">Simular</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab('history')}
+              className={cn(
+                "flex-1 flex flex-col items-center gap-1 py-2 rounded-xl transition-all",
+                activeTab === 'history' ? "bg-slate-900 text-white" : "text-slate-400"
+              )}
+            >
+              <History size={14} />
+              <span className="text-[6px] font-bold uppercase tracking-widest">Histórico</span>
             </button>
           </div>
         </div>
@@ -433,24 +469,25 @@ const App = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* BUDGET DISTRIBUTION */}
-              <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-6 flex flex-col shadow-sm">
+              <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-4 md:p-6 flex flex-col shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-between sm:justify-start gap-4">
                     <h2 className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400">Orçamento Fixo</h2>
                     <div className="flex gap-1.5">
                       <button 
                         onClick={handleDownloadPDF}
-                        className="flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-[7px] font-bold uppercase tracking-widest transition-all border border-slate-200"
+                        className="flex items-center gap-1 px-2 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-[7px] font-bold uppercase tracking-widest transition-all border border-slate-200"
                       >
                         <Download size={8} />
-                        Exportar
+                        <span className="hidden sm:inline">Exportar</span>
                       </button>
                       <button 
                         onClick={handleCloseMonth}
-                        className="flex items-center gap-1 px-2 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[7px] font-bold uppercase tracking-widest transition-all shadow-sm"
+                        className="flex items-center gap-1 px-2 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[7px] font-bold uppercase tracking-widest transition-all shadow-sm"
                       >
                         <CheckCircle2 size={8} />
-                        Fechar Mês
+                        <span className="hidden sm:inline">Fechar Mês</span>
+                        <span className="sm:hidden">Fechar</span>
                       </button>
                     </div>
                   </div>
@@ -459,10 +496,10 @@ const App = () => {
                       value={newCatName}
                       onChange={(e) => setNewCatName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
-                      className="h-7 text-[8px] bg-slate-50 border border-slate-200 rounded-lg px-2 w-full sm:w-32 outline-none font-bold focus:border-slate-400 transition-all placeholder:text-slate-300"
+                      className="h-8 text-[8px] bg-slate-50 border border-slate-200 rounded-lg px-2 w-full sm:w-32 outline-none font-bold focus:border-slate-400 transition-all placeholder:text-slate-300"
                       placeholder="NOVA CATEGORIA..."
                     />
-                    <button onClick={handleAddCategory} className="h-7 w-7 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all shadow-sm">
+                    <button onClick={handleAddCategory} className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all shadow-sm shrink-0">
                       <Plus size={12} />
                     </button>
                   </div>
@@ -600,8 +637,8 @@ const App = () => {
           </>
         ) : activeTab === 'simulation' ? (
           /* SIMULATION VIEW */
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 min-h-[500px] flex flex-col shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex items-center gap-4 mb-8">
+          <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-8 min-h-[500px] flex flex-col shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center gap-4 mb-6 md:mb-8">
               <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
                 <Calculator size={20} className="text-slate-400" />
               </div>
@@ -611,15 +648,15 @@ const App = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <div className="space-y-8">
-                <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+              <div className="space-y-6 md:space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                   <div className="space-y-2">
                     <label className="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1">Saldo Atual (R$)</label>
                     <input 
                       type="number" value={accumulatedInvestment || ""}
                       onChange={(e) => setAccumulatedInvestment(parseFloat(e.target.value) || 0)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-[10px] font-bold text-slate-900 outline-none focus:border-slate-400 transition-all"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 md:p-4 text-[10px] font-bold text-slate-900 outline-none focus:border-slate-400 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
@@ -627,19 +664,19 @@ const App = () => {
                     <input 
                       type="number" value={caixinhaAmount || ""}
                       onChange={(e) => setCaixinhaAmount(parseFloat(e.target.value) || 0)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-[10px] font-bold text-slate-900 outline-none focus:border-slate-400 transition-all"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 md:p-4 text-[10px] font-bold text-slate-900 outline-none focus:border-slate-400 transition-all"
                       placeholder="0,00"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                   <div className="space-y-2">
                     <label className="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1">Rendimento Anual (%)</label>
                     <input 
                       type="number" value={annualInterestRate || ""}
                       onChange={(e) => setAnnualInterestRate(parseFloat(e.target.value) || 0)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-[10px] font-bold text-slate-900 outline-none focus:border-slate-400 transition-all"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 md:p-4 text-[10px] font-bold text-slate-900 outline-none focus:border-slate-400 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
@@ -647,20 +684,20 @@ const App = () => {
                     <input 
                       type="number" value={projectionMonths || ""}
                       onChange={(e) => setProjectionMonths(parseInt(e.target.value) || 1)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-[10px] font-bold text-slate-900 outline-none focus:border-slate-400 transition-all"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 md:p-4 text-[10px] font-bold text-slate-900 outline-none focus:border-slate-400 transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-100 p-6 rounded-3xl flex flex-col gap-4">
+                <div className="bg-slate-50 border border-slate-100 p-5 md:p-6 rounded-3xl flex flex-col gap-4">
                   <div className="flex justify-between items-end">
                     <div>
                       <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Total Estimado</p>
-                      <p className="text-2xl font-bold text-slate-900 tracking-tight">{formatCurrency(finalData.total)}</p>
+                      <p className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">{formatCurrency(finalData.total)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Lucro Total</p>
-                      <p className="text-base font-bold text-slate-900">+{formatCurrency(finalData.totalProfit)}</p>
+                      <p className="text-sm md:text-base font-bold text-slate-900">+{formatCurrency(finalData.totalProfit)}</p>
                     </div>
                   </div>
                   <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
@@ -679,7 +716,7 @@ const App = () => {
                 <h3 className="text-[8px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                   <History size={12} /> Evolução Mensal
                 </h3>
-                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-2 max-h-[300px] lg:max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {projection.map((step) => (
                     <div key={step.month} className="flex justify-between items-center p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
                       <span className="text-[8px] font-bold text-slate-400">MÊS {step.month}</span>
