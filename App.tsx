@@ -7,7 +7,7 @@ import {
   ChevronRight, Calculator, X, History, ArrowUpRight,
   ShoppingBag, ReceiptText, Download
 } from "lucide-react";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useFinanceStore } from "./hooks/useFinanceStore";
 import { cn, formatCurrency } from "./lib/utils";
