@@ -99,6 +99,19 @@ export interface Session {
   status: 'completed' | 'incomplete';
 }
 
+export interface HistoryItem {
+  id: string;
+  monthName: string;
+  year: number;
+  salary: number;
+  totalBudgeted: number;
+  totalExpenses: number;
+  freeBalance: number;
+  categories: Category[];
+  expenses: Transaction[];
+  date: string;
+}
+
 export interface FinanceState {
   categories: Category[];
   settings: FinanceSettings;

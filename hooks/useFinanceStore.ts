@@ -1,28 +1,31 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Category, Transaction } from '../types';
+import { Category, Transaction, HistoryItem } from '../types';
 import { generateId, formatDate } from '../lib/utils';
 
 interface FinanceStore {
   salary: number;
   categories: Category[];
   expenses: Transaction[];
-  emergencyFundMonths: number;
+  history: HistoryItem[];
   annualInterestRate: number; // Taxa anual em %
   projectionMonths: number; // Tempo de projeção
   accumulatedInvestment: number; // Saldo que já existe na caixinha
+  caixinhaAmount: number; // Aporte mensal específico da caixinha
   
   // Actions
   setSalary: (amount: number) => void;
-  setEmergencyFundMonths: (months: number) => void;
   setAnnualInterestRate: (rate: number) => void;
   setProjectionMonths: (months: number) => void;
   setAccumulatedInvestment: (amount: number) => void;
+  setCaixinhaAmount: (amount: number) => void;
   addCategory: (name: string, icon: string, amount: number) => void;
   removeCategory: (id: string) => void;
   updateCategoryBudget: (id: string, amount: number) => void;
   addExpense: (description: string, amount: number) => void;
   removeExpense: (id: string) => void;
+  closeMonth: () => void;
+  removeHistoryItem: (id: string) => void;
   
   // Selectors
   getMonthlyInvestment: () => number;
@@ -30,29 +33,28 @@ interface FinanceStore {
   getTotalExpenses: () => number;
   getRemainingBalance: () => number; // Saldo após orçamento fixo
   getFreeBalance: () => number; // Saldo livre real (após orçamento e despesas variáveis)
-  getEmergencyFundGoal: () => number;
 }
 
 export const useFinanceStore = create<FinanceStore>()(
   persist(
     (set, get) => ({
       salary: 0,
-      emergencyFundMonths: 6,
       annualInterestRate: 12.0, // 12% ao ano default
       projectionMonths: 12,
       accumulatedInvestment: 0,
+      caixinhaAmount: 0,
       expenses: [],
+      history: [],
       categories: [
         { id: '1', name: 'Aluguel', icon: '🏠', budgetedAmount: 0, color: 'bg-blue-500' },
         { id: '2', name: 'Alimentação', icon: '🛒', budgetedAmount: 0, color: 'bg-orange-500' },
-        { id: 'caixinha', name: 'Caixinha', icon: '📦', budgetedAmount: 0, color: 'bg-cyan-500' },
       ],
 
       setSalary: (salary) => set({ salary }),
-      setEmergencyFundMonths: (emergencyFundMonths) => set({ emergencyFundMonths }),
       setAnnualInterestRate: (annualInterestRate) => set({ annualInterestRate }),
       setProjectionMonths: (projectionMonths) => set({ projectionMonths }),
       setAccumulatedInvestment: (accumulatedInvestment) => set({ accumulatedInvestment }),
+      setCaixinhaAmount: (caixinhaAmount) => set({ caixinhaAmount }),
 
       addCategory: (name, icon, budgetedAmount) => set((state) => ({
         categories: [...state.categories, { 
@@ -86,13 +88,47 @@ export const useFinanceStore = create<FinanceStore>()(
         expenses: state.expenses.filter(e => e.id !== id)
       })),
 
+      closeMonth: () => {
+        const state = get();
+        const now = new Date();
+        const monthNames = [
+          "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+          "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ];
+        
+        const historyItem: HistoryItem = {
+          id: generateId(),
+          monthName: monthNames[now.getMonth()],
+          year: now.getFullYear(),
+          salary: state.salary,
+          totalBudgeted: state.getTotalBudgeted(),
+          totalExpenses: state.getTotalExpenses(),
+          freeBalance: state.getFreeBalance(),
+          categories: [...state.categories],
+          expenses: [...state.expenses],
+          date: formatDate(now)
+        };
+
+        set((state) => ({
+          history: [historyItem, ...state.history],
+          // Reset current month data
+          expenses: [],
+          // We keep categories but maybe reset their budgeted amounts? 
+          // Usually users want to keep the budget structure.
+          // Let's just clear expenses for now as requested "store in another tab".
+        }));
+      },
+
+      removeHistoryItem: (id) => set((state) => ({
+        history: state.history.filter(h => h.id !== id)
+      })),
+
       getMonthlyInvestment: () => {
-        const caixinha = get().categories.find(c => c.name.toLowerCase().includes('caixinha'));
-        return caixinha ? (caixinha.budgetedAmount || 0) : 0;
+        return get().caixinhaAmount;
       },
 
       getTotalBudgeted: () => {
-        return get().categories.reduce((acc, c) => acc + (c.budgetedAmount || 0), 0);
+        return get().categories.reduce((acc, c) => acc + (c.budgetedAmount || 0), 0) + get().caixinhaAmount;
       },
 
       getTotalExpenses: () => {
@@ -105,13 +141,6 @@ export const useFinanceStore = create<FinanceStore>()(
 
       getFreeBalance: () => {
         return get().getRemainingBalance() - get().getTotalExpenses();
-      },
-
-      getEmergencyFundGoal: () => {
-        const monthlyEssentials = get().categories
-          .filter(c => !c.name.toLowerCase().includes('caixinha'))
-          .reduce((acc, c) => acc + (c.budgetedAmount || 0), 0);
-        return monthlyEssentials * get().emergencyFundMonths;
       }
     }),
     { name: 'financia-app-data-storage' }
